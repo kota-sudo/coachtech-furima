@@ -49,6 +49,7 @@
                                 type="text"
                                 class="block mt-1 w-full"
                                 :value="old('name', $user->name)"
+                                maxlength="20"
                                 required
                                 autofocus
                             />
@@ -63,6 +64,9 @@
                                 type="text"
                                 class="block mt-1 w-full"
                                 :value="old('postal_code', $user->postal_code)"
+                                placeholder="123-4567"
+                                maxlength="8"
+                                required
                             />
                             <x-input-error :messages="$errors->get('postal_code')" class="mt-2" />
                         </div>
@@ -75,6 +79,7 @@
                                 type="text"
                                 class="block mt-1 w-full"
                                 :value="old('address', $user->address)"
+                                required
                             />
                             <x-input-error :messages="$errors->get('address')" class="mt-2" />
                         </div>

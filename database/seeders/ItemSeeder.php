@@ -10,6 +10,8 @@ use App\Models\ItemImage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class ItemSeeder extends Seeder
 {
@@ -33,11 +35,16 @@ class ItemSeeder extends Seeder
         $categories = Category::pluck('id', 'name');
 
         foreach ($data['items'] as $itemData) {
+            $brandName = $itemData['brand_name'] ?? null;
+            if (in_array($brandName, ['なし', ''], true)) {
+                $brandName = null;
+            }
+
             $item = Item::create([
                 'user_id' => $seller->id,
                 'condition_id' => $conditions[$itemData['condition']],
                 'name' => $itemData['name'],
-                'brand_name' => $itemData['brand_name'],
+                'brand_name' => $brandName,
                 'description' => $itemData['description'],
                 'price' => $itemData['price'],
                 'is_sold' => $itemData['is_sold'],
@@ -45,7 +52,10 @@ class ItemSeeder extends Seeder
 
             ItemImage::create([
                 'item_id' => $item->id,
-                'image_path' => $itemData['image_path'],
+                'image_path' => $this->resolveImagePath(
+                    $itemData['image_url'],
+                    $itemData['image_filename']
+                ),
                 'sort_order' => 0,
             ]);
 
@@ -54,5 +64,24 @@ class ItemSeeder extends Seeder
                 'category_id' => $categories[$itemData['category']],
             ]);
         }
+    }
+
+    private function resolveImagePath(string $imageUrl, string $filename): string
+    {
+        $relativePath = 'items/'.$filename;
+
+        if (Storage::disk('public')->exists($relativePath)) {
+            return $relativePath;
+        }
+
+        $response = Http::timeout(30)->get($imageUrl);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException("商品画像の取得に失敗しました: {$imageUrl}");
+        }
+
+        Storage::disk('public')->put($relativePath, $response->body());
+
+        return $relativePath;
     }
 }

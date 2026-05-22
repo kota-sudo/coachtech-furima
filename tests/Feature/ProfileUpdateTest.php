@@ -32,7 +32,7 @@ class ProfileUpdateTest extends TestCase
         $file = UploadedFile::fake()->createWithContent('avatar.png', $png);
 
         $response = $this->actingAs($user)->put('/mypage/profile', [
-            'name' => '更新後ユーザー',
+            'name' => '更新後',
             'postal_code' => '123-4567',
             'address' => '東京都港区',
             'building' => 'ACビル',
@@ -43,13 +43,33 @@ class ProfileUpdateTest extends TestCase
         $response->assertSessionHas('status', 'profile-updated');
 
         $user->refresh();
-        $this->assertSame('更新後ユーザー', $user->name);
+        $this->assertSame('更新後', $user->name);
+        $this->assertSame('123-4567', $user->postal_code);
+        $this->assertSame('東京都港区', $user->address);
         $this->assertNotNull($user->profile_image);
         Storage::disk('public')->assertExists($user->profile_image);
 
         $this->actingAs($user)
             ->get('/mypage/profile')
             ->assertOk()
-            ->assertSee('更新後ユーザー', false);
+            ->assertSee('更新後', false);
+    }
+
+    public function test_profile_update_validates_postal_code_format(): void
+    {
+        $user = User::factory()->create([
+            'postal_code' => '100-0001',
+            'address' => '東京都',
+        ]);
+
+        $this->actingAs($user)
+            ->put('/mypage/profile', [
+                'name' => 'テストユーザー',
+                'postal_code' => '1234567',
+                'address' => '東京都港区',
+            ])
+            ->assertSessionHasErrors([
+                'postal_code' => '郵便番号はハイフンありの8文字で入力してください',
+            ]);
     }
 }
