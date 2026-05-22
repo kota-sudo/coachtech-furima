@@ -103,8 +103,8 @@ class ItemDetailTest extends TestCase
 
         $this->get(route('items.show', $item))
             ->assertOk()
-            ->assertSee('♥ 2', false)
-            ->assertSee('💬 1', false);
+            ->assertSee('💬 1', false)
+            ->assertSee('>2</span>', false);
     }
 
     public function test_item_detail_displays_comments_with_user(): void

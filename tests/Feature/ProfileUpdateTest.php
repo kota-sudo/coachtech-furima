@@ -17,6 +17,26 @@ class ProfileUpdateTest extends TestCase
         $this->get('/mypage/profile')->assertRedirect(route('login'));
     }
 
+    public function test_profile_page_displays_existing_user_values(): void
+    {
+        $user = User::factory()->create([
+            'name' => '表示テストユーザー',
+            'postal_code' => '150-0001',
+            'address' => '東京都渋谷区',
+            'building' => '渋谷ビル',
+            'profile_image' => 'profile_images/existing.jpg',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('mypage.profile'))
+            ->assertOk()
+            ->assertSee('value="表示テストユーザー"', false)
+            ->assertSee('value="150-0001"', false)
+            ->assertSee('value="東京都渋谷区"', false)
+            ->assertSee('value="渋谷ビル"', false)
+            ->assertSee('profile_images/existing.jpg', false);
+    }
+
     public function test_user_can_update_profile_with_image(): void
     {
         Storage::fake('public');

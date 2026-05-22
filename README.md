@@ -115,17 +115,19 @@ docker compose up -d
 docker compose down -v
 ```
 
-## テスト実行手順（枠）
+## テスト実行手順
 
-Feature テスト・Unit テストは今後追加予定です。実行する場合は次のコマンドを使用します。
+基本設計書のテストケース一覧（#1〜#15）に対応する Feature テストを実装しています。
 
 ```bash
 # 全テスト
 docker compose exec php php artisan test
 
-# または PHPUnit 直接
-docker compose exec php ./vendor/bin/phpunit
+# 特定のテストのみ
+docker compose exec php php artisan test --filter=ItemIndexTest
 ```
+
+主なテストクラス: `Auth/RegistrationTest`, `Auth/AuthenticationTest`, `ItemIndexTest`, `ItemDetailTest`, `LikeTest`, `CommentTest`, `PurchaseTest`, `PurchaseAddressTest`, `MypageTest`, `ProfileUpdateTest`, `ExhibitionTest`
 
 ## よく使うコマンド
 

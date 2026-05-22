@@ -213,6 +213,23 @@ class PurchaseTest extends TestCase
             ->assertSee('購入完了商品', false);
     }
 
+    public function test_purchased_item_appears_on_mypage_buy_tab(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller, ['name' => 'マイページ購入商品']);
+
+        $this->actingAs($buyer)
+            ->post(route('purchases.store', $item), $this->validPayload($methods['card']));
+
+        $this->actingAs($buyer)
+            ->get(route('mypage.index', ['page' => 'buy']))
+            ->assertOk()
+            ->assertSee('マイページ購入商品', false)
+            ->assertSee('Sold', false);
+    }
+
     public function test_payment_method_id_is_required(): void
     {
         $methods = $this->seedPaymentMethods();
