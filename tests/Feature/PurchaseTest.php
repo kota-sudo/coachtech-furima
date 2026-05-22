@@ -21,7 +21,7 @@ class PurchaseTest extends TestCase
     private function seedPaymentMethods(): array
     {
         return [
-            'convenience' => PaymentMethod::create(['name' => 'コンビニ払い']),
+            'convenience' => PaymentMethod::create(['name' => 'コンビニ支払い']),
             'card' => PaymentMethod::create(['name' => 'カード支払い']),
         ];
     }
@@ -96,7 +96,7 @@ class PurchaseTest extends TestCase
             ->assertSee('商品の購入', false)
             ->assertSee('購入テスト商品', false)
             ->assertSee('¥5,000', false)
-            ->assertSee('コンビニ払い', false)
+            ->assertSee('コンビニ支払い', false)
             ->assertSee('カード支払い', false)
             ->assertSee('value="100-0001"', false)
             ->assertSee('東京都千代田区', false)

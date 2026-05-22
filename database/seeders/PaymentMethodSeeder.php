@@ -10,7 +10,7 @@ class PaymentMethodSeeder extends Seeder
     public function run(): void
     {
         $paymentMethods = [
-            'コンビニ払い',
+            'コンビニ支払い',
             'カード支払い',
         ];
 
