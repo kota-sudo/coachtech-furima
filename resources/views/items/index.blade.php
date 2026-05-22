@@ -1,4 +1,21 @@
 <x-main-layout>
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="flex gap-6">
+            <a
+                href="{{ route('items.index', array_filter(['keyword' => $keyword ?: null])) }}"
+                class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'recommend' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            >
+                おすすめ
+            </a>
+            <a
+                href="{{ route('items.index', array_filter(['tab' => 'mylist', 'keyword' => $keyword ?: null])) }}"
+                class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'mylist' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            >
+                マイリスト
+            </a>
+        </nav>
+    </div>
+
     @if ($keyword !== '')
         <p class="mb-6 text-sm text-gray-600">
             「{{ $keyword }}」の検索結果: {{ $items->count() }}件
@@ -7,7 +24,11 @@
 
     @if ($items->isEmpty())
         <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-600">
-            表示できる商品がありません。
+            @if ($tab === 'mylist')
+                マイリストに表示できる商品がありません。
+            @else
+                表示できる商品がありません。
+            @endif
         </div>
     @else
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">

@@ -11,18 +11,31 @@ class ItemController extends Controller
     public function index(Request $request): View
     {
         $keyword = $request->string('keyword')->trim()->toString();
+        $tab = $request->string('tab')->toString();
+        $isMylist = $tab === 'mylist';
 
-        $items = Item::query()
-            ->with(['itemImages' => fn ($query) => $query->orderBy('sort_order')])
-            ->withExists('purchase')
-            ->when(auth()->check(), fn ($query) => $query->where('user_id', '!=', auth()->id()))
-            ->when($keyword !== '', fn ($query) => $query->where('name', 'like', '%'.$keyword.'%'))
-            ->orderBy('id')
-            ->get();
+        if ($isMylist && ! auth()->check()) {
+            $items = collect();
+        } else {
+            $query = Item::query()
+                ->with(['itemImages' => fn ($query) => $query->orderBy('sort_order')])
+                ->withExists('purchase');
+
+            if ($isMylist) {
+                $query->whereHas('likes', fn ($query) => $query->where('user_id', auth()->id()));
+            } else {
+                $query->when(auth()->check(), fn ($query) => $query->where('user_id', '!=', auth()->id()));
+            }
+
+            $query->when($keyword !== '', fn ($query) => $query->where('name', 'like', '%'.$keyword.'%'));
+
+            $items = $query->orderBy('id')->get();
+        }
 
         return view('items.index', [
             'items' => $items,
             'keyword' => $keyword,
+            'tab' => $isMylist ? 'mylist' : 'recommend',
         ]);
     }
 }

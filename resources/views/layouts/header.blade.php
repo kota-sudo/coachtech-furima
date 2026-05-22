@@ -6,6 +6,9 @@
             </a>
 
             <form method="GET" action="{{ url('/') }}" class="flex-1 max-w-xl mx-auto">
+                @if (request('tab') === 'mylist')
+                    <input type="hidden" name="tab" value="mylist">
+                @endif
                 <input
                     type="search"
                     name="keyword"

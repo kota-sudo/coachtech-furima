@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Condition;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\Like;
 use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use App\Models\User;
@@ -139,5 +140,80 @@ class ItemIndexTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('items/first.jpg', false);
+    }
+
+    public function test_guest_mylist_shows_no_items(): void
+    {
+        $seller = User::factory()->create();
+        $this->createItem($seller, ['name' => 'いいね対象商品']);
+
+        $this->get('/?tab=mylist')
+            ->assertOk()
+            ->assertSee('マイリスト', false)
+            ->assertDontSee('いいね対象商品', false);
+    }
+
+    public function test_authenticated_user_mylist_shows_only_liked_items(): void
+    {
+        $seller = User::factory()->create();
+        $user = User::factory()->create();
+
+        $likedItem = $this->createItem($seller, ['name' => 'いいね商品']);
+        $otherItem = $this->createItem($seller, ['name' => '未いいね商品']);
+
+        Like::create([
+            'user_id' => $user->id,
+            'item_id' => $likedItem->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/?tab=mylist')
+            ->assertOk()
+            ->assertSee('いいね商品', false)
+            ->assertDontSee('未いいね商品', false);
+    }
+
+    public function test_mylist_can_be_searched_by_keyword(): void
+    {
+        $seller = User::factory()->create();
+        $user = User::factory()->create();
+
+        $watch = $this->createItem($seller, ['name' => '腕時計']);
+        $shoes = $this->createItem($seller, ['name' => '革靴']);
+
+        Like::create(['user_id' => $user->id, 'item_id' => $watch->id]);
+        Like::create(['user_id' => $user->id, 'item_id' => $shoes->id]);
+
+        $this->actingAs($user)
+            ->get('/?tab=mylist&keyword=時計')
+            ->assertOk()
+            ->assertSee('腕時計', false)
+            ->assertDontSee('革靴', false);
+    }
+
+    public function test_mylist_displays_sold_badge_for_liked_sold_item(): void
+    {
+        $seller = User::factory()->create();
+        $user = User::factory()->create();
+
+        $item = $this->createItem($seller, ['name' => '売却済みいいね商品', 'is_sold' => true]);
+
+        Like::create([
+            'user_id' => $user->id,
+            'item_id' => $item->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/?tab=mylist')
+            ->assertOk()
+            ->assertSee('Sold', false);
+    }
+
+    public function test_mylist_tab_is_highlighted(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get('/?tab=mylist')
+            ->assertOk()
+            ->assertSee('border-indigo-500 text-indigo-600', false);
     }
 }
