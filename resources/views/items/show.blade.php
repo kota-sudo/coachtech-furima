@@ -80,10 +80,35 @@
                         <span>💬 {{ $item->comments_count }}</span>
                     </div>
 
+                    @php
+                        $canPurchase = auth()->check()
+                            && $item->user_id !== auth()->id()
+                            && ! $item->is_sold
+                            && ! $item->purchase()->exists();
+                    @endphp
+
                     <div class="mt-6">
-                        <x-primary-button type="button" class="w-full justify-center">
-                            購入手続きへ
-                        </x-primary-button>
+                        @if ($canPurchase)
+                            <a href="{{ route('purchases.create', $item) }}" class="block">
+                                <x-primary-button type="button" class="w-full justify-center">
+                                    購入手続きへ
+                                </x-primary-button>
+                            </a>
+                        @elseif (auth()->check() && ($item->is_sold || $item->purchase()->exists()))
+                            <x-primary-button type="button" class="w-full justify-center opacity-50 cursor-not-allowed" disabled>
+                                売り切れ
+                            </x-primary-button>
+                        @elseif (auth()->check() && $item->user_id === auth()->id())
+                            <x-primary-button type="button" class="w-full justify-center opacity-50 cursor-not-allowed" disabled>
+                                購入手続きへ
+                            </x-primary-button>
+                        @else
+                            <a href="{{ route('login') }}" class="block">
+                                <x-primary-button type="button" class="w-full justify-center">
+                                    購入手続きへ
+                                </x-primary-button>
+                            </a>
+                        @endif
                     </div>
                 </div>
 

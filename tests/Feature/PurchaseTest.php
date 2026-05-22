@@ -1,0 +1,291 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Condition;
+use App\Models\Item;
+use App\Models\ItemImage;
+use App\Models\PaymentMethod;
+use App\Models\Purchase;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class PurchaseTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /**
+     * @return array{convenience: PaymentMethod, card: PaymentMethod}
+     */
+    private function seedPaymentMethods(): array
+    {
+        return [
+            'convenience' => PaymentMethod::create(['name' => 'コンビニ払い']),
+            'card' => PaymentMethod::create(['name' => 'カード支払い']),
+        ];
+    }
+
+    private function createItem(User $seller, array $attributes = []): Item
+    {
+        $condition = Condition::create(['name' => '良好']);
+
+        $item = Item::create(array_merge([
+            'user_id' => $seller->id,
+            'condition_id' => $condition->id,
+            'name' => '購入テスト商品',
+            'brand_name' => null,
+            'description' => '説明',
+            'price' => 5000,
+            'is_sold' => false,
+        ], $attributes));
+
+        ItemImage::create([
+            'item_id' => $item->id,
+            'image_path' => 'items/test.jpg',
+            'sort_order' => 0,
+        ]);
+
+        return $item;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validPayload(PaymentMethod $paymentMethod, array $overrides = []): array
+    {
+        return array_merge([
+            'payment_method_id' => $paymentMethod->id,
+            'postal_code' => '123-4567',
+            'address' => '東京都渋谷区',
+            'building' => 'テストビル',
+        ], $overrides);
+    }
+
+    public function test_guest_is_redirected_to_login_when_accessing_purchase_page(): void
+    {
+        $item = $this->createItem(User::factory()->create());
+
+        $this->get(route('purchases.create', $item))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_guest_is_redirected_to_login_when_purchasing(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $item = $this->createItem(User::factory()->create());
+
+        $this->post(route('purchases.store', $item), $this->validPayload($methods['card']))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_authenticated_user_can_view_purchase_page(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create([
+            'postal_code' => '100-0001',
+            'address' => '東京都千代田区',
+            'building' => '皇居',
+        ]);
+        $item = $this->createItem($seller);
+
+        $this->actingAs($buyer)
+            ->get(route('purchases.create', $item))
+            ->assertOk()
+            ->assertSee('商品の購入', false)
+            ->assertSee('購入テスト商品', false)
+            ->assertSee('¥5,000', false)
+            ->assertSee('コンビニ払い', false)
+            ->assertSee('カード支払い', false)
+            ->assertSee('value="100-0001"', false)
+            ->assertSee('東京都千代田区', false)
+            ->assertSee('皇居', false)
+            ->assertSee($methods['convenience']->name, false)
+            ->assertSee('id="payment-method-summary"', false);
+    }
+
+    public function test_selected_payment_method_is_reflected_in_summary_area(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $this->actingAs($buyer)
+            ->get(route('purchases.create', $item))
+            ->assertOk()
+            ->assertSee('id="payment-method-summary"', false)
+            ->assertSee($methods['convenience']->name, false);
+
+        $this->actingAs($buyer)
+            ->from(route('purchases.create', $item))
+            ->post(route('purchases.store', $item), [
+                'payment_method_id' => $methods['card']->id,
+                'postal_code' => '',
+                'address' => '',
+            ])
+            ->assertRedirect(route('purchases.create', $item));
+
+        $this->actingAs($buyer)
+            ->get(route('purchases.create', $item))
+            ->assertOk()
+            ->assertSee($methods['card']->name, false);
+    }
+
+    public function test_user_cannot_purchase_own_item(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $this->actingAs($seller)
+            ->get(route('purchases.create', $item))
+            ->assertForbidden();
+
+        $this->actingAs($seller)
+            ->post(route('purchases.store', $item), $this->validPayload($methods['card']))
+            ->assertForbidden();
+    }
+
+    public function test_user_cannot_purchase_sold_item(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller, ['is_sold' => true]);
+
+        $this->actingAs($buyer)
+            ->get(route('purchases.create', $item))
+            ->assertForbidden();
+
+        $this->actingAs($buyer)
+            ->post(route('purchases.store', $item), $this->validPayload($methods['card']))
+            ->assertForbidden();
+    }
+
+    public function test_user_cannot_purchase_item_with_existing_purchase(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $otherBuyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        Purchase::create([
+            'user_id' => $buyer->id,
+            'item_id' => $item->id,
+            'payment_method_id' => $methods['card']->id,
+            'postal_code' => '123-4567',
+            'address' => '東京都',
+        ]);
+
+        $this->actingAs($otherBuyer)
+            ->get(route('purchases.create', $item))
+            ->assertForbidden();
+    }
+
+    public function test_authenticated_user_can_complete_purchase(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller, ['name' => '購入完了商品']);
+
+        $this->actingAs($buyer)
+            ->post(route('purchases.store', $item), $this->validPayload($methods['card']))
+            ->assertRedirect(route('items.index'));
+
+        $this->assertDatabaseHas('purchases', [
+            'user_id' => $buyer->id,
+            'item_id' => $item->id,
+            'payment_method_id' => $methods['card']->id,
+            'postal_code' => '123-4567',
+            'address' => '東京都渋谷区',
+            'building' => 'テストビル',
+        ]);
+
+        $this->assertTrue($item->fresh()->is_sold);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Sold', false)
+            ->assertSee('購入完了商品', false);
+    }
+
+    public function test_payment_method_id_is_required(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $payload = $this->validPayload($methods['card']);
+        unset($payload['payment_method_id']);
+
+        $this->actingAs($buyer)
+            ->from(route('purchases.create', $item))
+            ->post(route('purchases.store', $item), $payload)
+            ->assertRedirect(route('purchases.create', $item))
+            ->assertSessionHasErrors(['payment_method_id' => '支払い方法を選択してください']);
+    }
+
+    public function test_postal_code_and_address_are_required(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $payload = $this->validPayload($methods['card']);
+        $payload['postal_code'] = '';
+        $payload['address'] = '';
+
+        $this->actingAs($buyer)
+            ->from(route('purchases.create', $item))
+            ->post(route('purchases.store', $item), $payload)
+            ->assertRedirect(route('purchases.create', $item))
+            ->assertSessionHasErrors([
+                'postal_code' => '郵便番号を入力してください',
+                'address' => '住所を入力してください',
+            ]);
+    }
+
+    public function test_postal_code_must_match_hyphenated_format(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $payload = $this->validPayload($methods['card'], ['postal_code' => '1234567']);
+
+        $this->actingAs($buyer)
+            ->from(route('purchases.create', $item))
+            ->post(route('purchases.store', $item), $payload)
+            ->assertRedirect(route('purchases.create', $item))
+            ->assertSessionHasErrors([
+                'postal_code' => '郵便番号はハイフンありの8文字で入力してください',
+            ]);
+    }
+
+    public function test_building_is_optional(): void
+    {
+        $methods = $this->seedPaymentMethods();
+        $seller = User::factory()->create();
+        $buyer = User::factory()->create();
+        $item = $this->createItem($seller);
+
+        $payload = $this->validPayload($methods['convenience']);
+        unset($payload['building']);
+
+        $this->actingAs($buyer)
+            ->post(route('purchases.store', $item), $payload)
+            ->assertRedirect(route('items.index'));
+
+        $this->assertDatabaseHas('purchases', [
+            'item_id' => $item->id,
+            'building' => null,
+        ]);
+    }
+}
