@@ -4,6 +4,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ExhibitController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\MypageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseAddressController;
 use App\Http\Controllers\PurchaseController;
@@ -24,6 +25,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/purchase/{item}', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchase/{item}', [PurchaseController::class, 'store'])->name('purchases.store');
+
+    Route::get('/mypage', [MypageController::class, 'index'])->name('mypage.index');
 
     Route::get('/mypage/profile', [ProfileController::class, 'edit'])->name('mypage.profile');
     Route::put('/mypage/profile', [ProfileController::class, 'update'])->name('mypage.profile.update');

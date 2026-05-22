@@ -20,8 +20,8 @@
 
             <div class="flex shrink-0 items-center gap-4">
                 @auth
-                    <a href="{{ route('mypage.profile') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                        プロフィール
+                    <a href="{{ route('mypage.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+                        マイページ
                     </a>
                     <span class="text-sm text-gray-600">{{ Auth::user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
