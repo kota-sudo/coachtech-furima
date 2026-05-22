@@ -7,6 +7,9 @@
 
             <div class="flex items-center gap-4">
                 @auth
+                    <a href="{{ route('mypage.profile') }}" class="text-sm text-gray-600 hover:text-gray-900">
+                        プロフィール
+                    </a>
                     <span class="text-sm text-gray-600">{{ Auth::user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
