@@ -5,6 +5,7 @@ use App\Http\Controllers\ExhibitController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseAddressController;
 use App\Http\Controllers\PurchaseController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/item/{item}/like', [LikeController::class, 'toggle'])->name('items.like');
     Route::post('/item/{item}/comment', [CommentController::class, 'store'])->name('items.comment');
+
+    Route::get('/purchase/address/{item}', [PurchaseAddressController::class, 'edit'])->name('purchases.address');
+    Route::put('/purchase/address/{item}', [PurchaseAddressController::class, 'update'])->name('purchases.address.update');
 
     Route::get('/purchase/{item}', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchase/{item}', [PurchaseController::class, 'store'])->name('purchases.store');

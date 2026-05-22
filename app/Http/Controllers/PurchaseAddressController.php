@@ -2,55 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PurchaseRequest;
+use App\Http\Requests\AddressRequest;
 use App\Models\Item;
-use App\Models\PaymentMethod;
-use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class PurchaseController extends Controller
+class PurchaseAddressController extends Controller
 {
-    public function create(Item $item): View
+    public function edit(Item $item): View
     {
         $this->ensurePurchasable($item);
 
-        $item->load([
-            'itemImages' => fn ($query) => $query->orderBy('sort_order'),
-        ]);
+        $shippingAddress = $this->resolveShippingAddress($item);
 
-        return view('purchases.create', [
+        return view('purchases.address', [
             'item' => $item,
-            'paymentMethods' => PaymentMethod::orderBy('id')->get(),
-            'shippingAddress' => $this->resolveShippingAddress($item),
+            'shippingAddress' => $shippingAddress,
         ]);
     }
 
-    public function store(PurchaseRequest $request, Item $item): RedirectResponse
+    public function update(AddressRequest $request, Item $item): RedirectResponse
     {
         $this->ensurePurchasable($item);
 
         $validated = $request->validated();
-        $shippingAddress = $this->resolveShippingAddress($item);
 
-        DB::transaction(function () use ($item, $validated, $shippingAddress) {
-            Purchase::create([
-                'user_id' => auth()->id(),
-                'item_id' => $item->id,
-                'payment_method_id' => $validated['payment_method_id'],
-                'postal_code' => $shippingAddress['postal_code'] ?? $validated['postal_code'],
-                'address' => $shippingAddress['address'] ?? $validated['address'],
-                'building' => $shippingAddress['building'] ?? $validated['building'] ?? null,
-            ]);
+        session([
+            $this->sessionKey($item) => [
+                'postal_code' => $validated['postal_code'],
+                'address' => $validated['address'],
+                'building' => $validated['building'] ?? null,
+            ],
+        ]);
 
-            $item->update(['is_sold' => true]);
-        });
-
-        session()->forget($this->sessionKey($item));
-
-        return redirect()->route('items.index');
+        return redirect()->route('purchases.create', $item);
     }
 
     private function sessionKey(Item $item): string

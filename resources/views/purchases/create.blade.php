@@ -68,49 +68,40 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                    <h2 class="text-lg font-semibold text-gray-900">配送先</h2>
-
-                    <div>
-                        <x-input-label for="postal_code" value="郵便番号" />
-                        <x-text-input
-                            id="postal_code"
-                            name="postal_code"
-                            type="text"
-                            class="block mt-1 w-full"
-                            :value="old('postal_code', $user->postal_code)"
-                            placeholder="123-4567"
-                            required
-                        />
-                        <x-input-error :messages="$errors->get('postal_code')" class="mt-2" />
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="text-lg font-semibold text-gray-900">配送先</h2>
+                        <a
+                            href="{{ route('purchases.address', $item) }}"
+                            class="text-sm text-indigo-600 hover:text-indigo-800 underline shrink-0"
+                        >
+                            送付先を変更する
+                        </a>
                     </div>
 
-                    <div>
-                        <x-input-label for="address" value="住所" />
-                        <x-text-input
-                            id="address"
-                            name="address"
-                            type="text"
-                            class="block mt-1 w-full"
-                            :value="old('address', $user->address)"
-                            required
-                        />
-                        <x-input-error :messages="$errors->get('address')" class="mt-2" />
-                    </div>
+                    <dl class="text-sm space-y-2">
+                        <div>
+                            <dt class="text-gray-600">郵便番号</dt>
+                            <dd class="mt-1 font-medium text-gray-900">{{ old('postal_code', $shippingAddress['postal_code']) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-600">住所</dt>
+                            <dd class="mt-1 font-medium text-gray-900">{{ old('address', $shippingAddress['address']) }}</dd>
+                        </div>
+                        @if (old('building', $shippingAddress['building']))
+                            <div>
+                                <dt class="text-gray-600">建物名</dt>
+                                <dd class="mt-1 font-medium text-gray-900">{{ old('building', $shippingAddress['building']) }}</dd>
+                            </div>
+                        @endif
+                    </dl>
 
-                    <div>
-                        <x-input-label for="building" value="建物名" />
-                        <x-text-input
-                            id="building"
-                            name="building"
-                            type="text"
-                            class="block mt-1 w-full"
-                            :value="old('building', $user->building)"
-                        />
-                        <p class="mt-1 text-xs text-gray-500">任意</p>
-                        <x-input-error :messages="$errors->get('building')" class="mt-2" />
-                    </div>
+                    <input type="hidden" name="postal_code" value="{{ old('postal_code', $shippingAddress['postal_code']) }}">
+                    <input type="hidden" name="address" value="{{ old('address', $shippingAddress['address']) }}">
+                    <input type="hidden" name="building" value="{{ old('building', $shippingAddress['building']) }}">
 
-                    {{-- 配送先住所変更画面（/purchase/address/{item_id}）は未実装 --}}
+                    <x-input-error :messages="$errors->get('postal_code')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('building')" class="mt-2" />
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm p-6">
