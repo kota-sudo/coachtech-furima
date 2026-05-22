@@ -48,8 +48,12 @@ class ItemController extends Controller
             'comments.user',
         ])->loadCount(['likes', 'comments']);
 
+        $isLiked = auth()->check()
+            && $item->likes()->where('user_id', auth()->id())->exists();
+
         return view('items.show', [
             'item' => $item,
+            'isLiked' => $isLiked,
         ]);
     }
 }
