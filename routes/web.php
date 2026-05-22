@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ExhibitController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ProfileController;
@@ -10,6 +11,9 @@ Route::get('/', [ItemController::class, 'index'])->name('items.index');
 Route::get('/item/{item}', [ItemController::class, 'show'])->name('items.show');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/sell', [ExhibitController::class, 'create'])->name('items.sell');
+    Route::post('/sell', [ExhibitController::class, 'store'])->name('items.sell.store');
+
     Route::post('/item/{item}/like', [LikeController::class, 'toggle'])->name('items.like');
     Route::post('/item/{item}/comment', [CommentController::class, 'store'])->name('items.comment');
 
