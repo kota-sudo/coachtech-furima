@@ -1,0 +1,62 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: furima-php
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - furima
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: furima-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - furima
+
+  mysql:
+    image: mysql:8.0
+    container_name: furima-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: furima
+      MYSQL_USER: furima
+      MYSQL_PASSWORD: furima
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - furima
+
+  node:
+    image: node:20-alpine
+    container_name: furima-node
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - furima
+
+networks:
+  furima:
+    driver: bridge
+
+volumes:
+  mysql-data:
