@@ -37,7 +37,7 @@
                     $primaryImage = $item->itemImages->first();
                     $isSold = $item->is_sold || $item->purchase_exists;
                 @endphp
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <a href="{{ route('items.show', $item) }}" class="block bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
                     <div class="relative aspect-square bg-gray-100">
                         @if ($primaryImage)
                             <img
@@ -61,7 +61,7 @@
                     <div class="p-3">
                         <p class="text-sm text-gray-800 line-clamp-2">{{ $item->name }}</p>
                     </div>
-                </div>
+                </a>
             @endforeach
         </div>
     @endif

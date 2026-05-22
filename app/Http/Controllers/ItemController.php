@@ -38,4 +38,18 @@ class ItemController extends Controller
             'tab' => $isMylist ? 'mylist' : 'recommend',
         ]);
     }
+
+    public function show(Item $item): View
+    {
+        $item->load([
+            'itemImages' => fn ($query) => $query->orderBy('sort_order'),
+            'categories',
+            'condition',
+            'comments.user',
+        ])->loadCount(['likes', 'comments']);
+
+        return view('items.show', [
+            'item' => $item,
+        ]);
+    }
 }
