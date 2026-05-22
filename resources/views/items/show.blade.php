@@ -119,6 +119,30 @@
                 コメント（{{ $item->comments_count }}）
             </h2>
 
+            <div class="mt-6">
+                @auth
+                    <form method="POST" action="{{ route('items.comment', $item) }}" class="space-y-4">
+                        @csrf
+                        <div>
+                            <x-input-label for="comment" value="コメントを入力" />
+                            <textarea
+                                id="comment"
+                                name="comment"
+                                rows="4"
+                                class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                placeholder="コメントを入力してください"
+                            >{{ old('comment') }}</textarea>
+                            <x-input-error :messages="$errors->get('comment')" class="mt-2" />
+                        </div>
+                        <x-primary-button>送信する</x-primary-button>
+                    </form>
+                @else
+                    <p class="text-sm text-gray-600">
+                        コメントするには<a href="{{ route('login') }}" class="underline text-indigo-600 hover:text-indigo-800">ログイン</a>してください。
+                    </p>
+                @endauth
+            </div>
+
             @if ($item->comments->isEmpty())
                 <p class="mt-4 text-sm text-gray-500">コメントはまだありません。</p>
             @else
