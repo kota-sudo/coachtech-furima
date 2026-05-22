@@ -1,11 +1,21 @@
 <header class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-            <a href="{{ url('/') }}" class="text-lg font-semibold text-gray-800">
+        <div class="flex h-16 items-center gap-4">
+            <a href="{{ url('/') }}" class="shrink-0 text-lg font-semibold text-gray-800">
                 {{ config('app.name', 'coachtechフリマ') }}
             </a>
 
-            <div class="flex items-center gap-4">
+            <form method="GET" action="{{ url('/') }}" class="flex-1 max-w-xl mx-auto">
+                <input
+                    type="search"
+                    name="keyword"
+                    value="{{ request('keyword') }}"
+                    placeholder="商品名で検索"
+                    class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                >
+            </form>
+
+            <div class="flex shrink-0 items-center gap-4">
                 @auth
                     <a href="{{ route('mypage.profile') }}" class="text-sm text-gray-600 hover:text-gray-900">
                         プロフィール
