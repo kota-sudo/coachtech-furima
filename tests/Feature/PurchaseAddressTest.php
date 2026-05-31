@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Condition;
 use App\Models\Item;
 use App\Models\ItemImage;
-use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,11 +35,6 @@ class PurchaseAddressTest extends TestCase
         ]);
 
         return $item;
-    }
-
-    private function seedPaymentMethod(): PaymentMethod
-    {
-        return PaymentMethod::create(['name' => 'カード支払い']);
     }
 
     public function test_guest_is_redirected_to_login_when_accessing_address_page(): void
@@ -74,7 +68,6 @@ class PurchaseAddressTest extends TestCase
 
     public function test_purchase_page_links_to_address_change_page(): void
     {
-        $this->seedPaymentMethod();
         $seller = User::factory()->create();
         $buyer = User::factory()->create();
         $item = $this->createItem($seller);
@@ -107,7 +100,6 @@ class PurchaseAddressTest extends TestCase
 
     public function test_user_can_update_address_and_return_to_purchase_page(): void
     {
-        $this->seedPaymentMethod();
         $seller = User::factory()->create();
         $buyer = User::factory()->create([
             'postal_code' => '100-0001',
@@ -135,7 +127,6 @@ class PurchaseAddressTest extends TestCase
 
     public function test_purchase_saves_session_address_without_updating_user(): void
     {
-        $paymentMethod = $this->seedPaymentMethod();
         $seller = User::factory()->create();
         $buyer = User::factory()->create([
             'postal_code' => '100-0001',
@@ -156,7 +147,7 @@ class PurchaseAddressTest extends TestCase
 
         $this->actingAs($buyer)
             ->post(route('purchases.store', $item), [
-                'payment_method_id' => $paymentMethod->id,
+                'payment_method' => Purchase::PAYMENT_CARD,
                 'postal_code' => '160-0022',
                 'address' => '東京都新宿区',
                 'building' => '新宿タワー',
@@ -215,7 +206,6 @@ class PurchaseAddressTest extends TestCase
 
     public function test_building_is_optional_on_address_update(): void
     {
-        $this->seedPaymentMethod();
         $seller = User::factory()->create();
         $buyer = User::factory()->create();
         $item = $this->createItem($seller);

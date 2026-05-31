@@ -85,8 +85,8 @@
 
 ## 注意点
 - DB設計の最新・正式版は `docs/table_design.md`（実装準拠）を参照する
-  - 旧 `docs/table_design.xlsx` / `docs/er_diagram.jpg` は 9 テーブル・`purchases.payment_method`（文字列）だが、実装では **10 テーブル**・`purchases.payment_method_id`（`payment_methods` への外部キー）で正規化している
-  - xlsx / jpg も `docs/table_design.md` に合わせて更新する
+  - テーブル仕様書どおりの **9 テーブル構成**。支払い方法は `purchases.payment_method`（integer：1=コンビニ / 2=カード）で保持し、マスタテーブルは作成しない
+  - 旧 `docs/table_design.xlsx` / `docs/er_diagram.jpg` も `docs/table_design.md` に合わせて更新する
 - items に category_id を直接持たせない
 - items に condition 文字列カラムを持たせない
 - likes テーブルを使い、favorites は使わない

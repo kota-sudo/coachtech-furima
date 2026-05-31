@@ -1,8 +1,7 @@
 <x-main-layout>
     @php
         $primaryImage = $item->itemImages->first();
-        $selectedPaymentMethodId = (int) old('payment_method_id', $paymentMethods->first()?->id);
-        $selectedPaymentMethod = $paymentMethods->firstWhere('id', $selectedPaymentMethodId);
+        $selectedPaymentMethod = (int) old('payment_method', array_key_first($paymentMethods));
     @endphp
 
     <div class="max-w-5xl mx-auto">
@@ -48,22 +47,22 @@
                     <h2 class="text-lg font-semibold text-gray-900">お支払い方法</h2>
 
                     <div>
-                        <x-input-label for="payment_method_id" value="支払い方法" />
+                        <x-input-label for="payment_method" value="支払い方法" />
                         <select
-                            id="payment_method_id"
-                            name="payment_method_id"
+                            id="payment_method"
+                            name="payment_method"
                             class="block mt-1 w-full border-gray-300 focus:border-red-400 focus:ring-red-400 rounded-md shadow-sm"
                         >
-                            @foreach ($paymentMethods as $paymentMethod)
+                            @foreach ($paymentMethods as $value => $label)
                                 <option
-                                    value="{{ $paymentMethod->id }}"
-                                    @selected($selectedPaymentMethodId === $paymentMethod->id)
+                                    value="{{ $value }}"
+                                    @selected($selectedPaymentMethod === $value)
                                 >
-                                    {{ $paymentMethod->name }}
+                                    {{ $label }}
                                 </option>
                             @endforeach
                         </select>
-                        <x-input-error :messages="$errors->get('payment_method_id')" class="mt-2" />
+                        <x-input-error :messages="$errors->get('payment_method')" class="mt-2" />
                     </div>
                 </div>
 
@@ -114,7 +113,7 @@
                         <div class="flex justify-between">
                             <dt class="text-gray-600">支払い方法</dt>
                             <dd id="payment-method-summary" class="font-medium text-gray-900">
-                                {{ $selectedPaymentMethod?->name ?? '—' }}
+                                {{ $paymentMethods[$selectedPaymentMethod] ?? '—' }}
                             </dd>
                         </div>
                     </dl>
@@ -131,7 +130,7 @@
     </div>
 
     <script>
-        document.getElementById('payment_method_id')?.addEventListener('change', function () {
+        document.getElementById('payment_method')?.addEventListener('change', function () {
             const summary = document.getElementById('payment-method-summary');
             if (summary) {
                 summary.textContent = this.options[this.selectedIndex].text;

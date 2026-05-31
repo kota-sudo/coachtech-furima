@@ -9,13 +9,22 @@ class Purchase extends Model
 {
     public $timestamps = false;
 
+    public const PAYMENT_CONVENIENCE = 1;
+
+    public const PAYMENT_CARD = 2;
+
+    public const PAYMENT_METHODS = [
+        self::PAYMENT_CONVENIENCE => 'コンビニ支払い',
+        self::PAYMENT_CARD => 'カード支払い',
+    ];
+
     protected $fillable = [
         'user_id',
         'item_id',
-        'payment_method_id',
         'postal_code',
         'address',
         'building',
+        'payment_method',
     ];
 
     public function user(): BelongsTo
@@ -28,8 +37,8 @@ class Purchase extends Model
         return $this->belongsTo(Item::class);
     }
 
-    public function paymentMethod(): BelongsTo
+    public function paymentMethodLabel(): string
     {
-        return $this->belongsTo(PaymentMethod::class);
+        return self::PAYMENT_METHODS[$this->payment_method] ?? '—';
     }
 }

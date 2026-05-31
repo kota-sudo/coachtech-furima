@@ -6,7 +6,6 @@ use App\Models\Condition;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\Like;
-use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,12 +83,10 @@ class ItemIndexTest extends TestCase
 
         $item = $this->createItem($seller, ['name' => '購入済み商品', 'is_sold' => false]);
 
-        $paymentMethod = PaymentMethod::create(['name' => 'カード支払い']);
-
         Purchase::create([
             'user_id' => $buyer->id,
             'item_id' => $item->id,
-            'payment_method_id' => $paymentMethod->id,
+            'payment_method' => Purchase::PAYMENT_CARD,
             'postal_code' => '123-4567',
             'address' => '東京都',
         ]);
@@ -214,6 +211,6 @@ class ItemIndexTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get('/?tab=mylist')
             ->assertOk()
-            ->assertSee('border-indigo-500 text-indigo-600', false);
+            ->assertSee('border-red-500 text-red-500', false);
     }
 }

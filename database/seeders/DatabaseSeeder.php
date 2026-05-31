@@ -11,7 +11,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ConditionSeeder::class,
             CategorySeeder::class,
-            PaymentMethodSeeder::class,
             ItemSeeder::class,
         ]);
     }

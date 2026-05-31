@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseRequest;
 use App\Models\Item;
-use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +24,7 @@ class PurchaseController extends Controller
 
         return view('purchases.create', [
             'item' => $item,
-            'paymentMethods' => PaymentMethod::orderBy('id')->get(),
+            'paymentMethods' => Purchase::PAYMENT_METHODS,
             'shippingAddress' => $this->resolveShippingAddress($item),
         ]);
     }
@@ -36,10 +35,10 @@ class PurchaseController extends Controller
 
         $validated = $request->validated();
         $shippingAddress = $this->resolveShippingAddress($item);
-        $paymentMethod = PaymentMethod::findOrFail($validated['payment_method_id']);
+        $paymentMethod = (int) $validated['payment_method'];
 
         $purchaseData = [
-            'payment_method_id' => $paymentMethod->id,
+            'payment_method' => $paymentMethod,
             'postal_code' => $shippingAddress['postal_code'] ?? $validated['postal_code'],
             'address' => $shippingAddress['address'] ?? $validated['address'],
             'building' => $shippingAddress['building'] ?? $validated['building'] ?? null,
@@ -100,11 +99,11 @@ class PurchaseController extends Controller
         session()->forget($this->sessionKey($item));
     }
 
-    private function redirectToStripeCheckout(Item $item, PaymentMethod $paymentMethod, array $purchaseData): RedirectResponse
+    private function redirectToStripeCheckout(Item $item, int $paymentMethod, array $purchaseData): RedirectResponse
     {
         $checkoutSession = $this->stripe()->checkout->sessions->create([
             'mode' => 'payment',
-            'payment_method_types' => $paymentMethod->isCard() ? ['card'] : ['konbini'],
+            'payment_method_types' => $paymentMethod === Purchase::PAYMENT_CARD ? ['card'] : ['konbini'],
             'customer_email' => auth()->user()->email,
             'line_items' => [[
                 'quantity' => 1,

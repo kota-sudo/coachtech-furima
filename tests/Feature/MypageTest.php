@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Condition;
 use App\Models\Item;
 use App\Models\ItemImage;
-use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -80,7 +79,7 @@ class MypageTest extends TestCase
             ->assertOk()
             ->assertSee('出品した商品', false)
             ->assertSee('出品商品A', false)
-            ->assertSee('border-indigo-500', false);
+            ->assertSee('border-red-500', false);
     }
 
     public function test_mypage_sell_tab_displays_listed_items(): void
@@ -103,15 +102,13 @@ class MypageTest extends TestCase
     {
         $seller = User::factory()->create();
         $buyer = User::factory()->create();
-        $paymentMethod = PaymentMethod::create(['name' => 'カード支払い']);
-
         $purchased = $this->createItem($seller, [], '購入した商品');
         $notPurchased = $this->createItem($seller, [], '未購入商品');
 
         Purchase::create([
             'user_id' => $buyer->id,
             'item_id' => $purchased->id,
-            'payment_method_id' => $paymentMethod->id,
+            'payment_method' => Purchase::PAYMENT_CARD,
             'postal_code' => '123-4567',
             'address' => '東京都',
         ]);
@@ -139,14 +136,12 @@ class MypageTest extends TestCase
     {
         $seller = User::factory()->create();
         $buyer = User::factory()->create();
-        $paymentMethod = PaymentMethod::create(['name' => 'カード支払い']);
-
         $item = $this->createItem($seller, [], '購入済み表示商品');
 
         Purchase::create([
             'user_id' => $buyer->id,
             'item_id' => $item->id,
-            'payment_method_id' => $paymentMethod->id,
+            'payment_method' => Purchase::PAYMENT_CARD,
             'postal_code' => '123-4567',
             'address' => '東京都',
         ]);
