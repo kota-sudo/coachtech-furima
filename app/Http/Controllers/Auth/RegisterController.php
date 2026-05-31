@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Illuminate\View\View;
+use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class RegisterController extends Controller
 {
@@ -20,8 +21,10 @@ class RegisterController extends Controller
     {
         $user = $creator->create($request->validated());
 
+        event(new Registered($user));
+
         Auth::login($user);
 
-        return redirect()->route('mypage.profile');
+        return redirect()->route('verification.notice');
     }
 }

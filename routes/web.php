@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ItemController::class, 'index'])->name('items.index');
 Route::get('/item/{item}', [ItemController::class, 'show'])->name('items.show');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sell', [ExhibitController::class, 'create'])->name('items.sell');
     Route::post('/sell', [ExhibitController::class, 'store'])->name('items.sell.store');
 
@@ -25,6 +25,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/purchase/{item}', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchase/{item}', [PurchaseController::class, 'store'])->name('purchases.store');
+    Route::get('/purchase/{item}/success', [PurchaseController::class, 'success'])->name('purchases.success');
+    Route::get('/purchase/{item}/cancel', [PurchaseController::class, 'cancel'])->name('purchases.cancel');
 
     Route::get('/mypage', [MypageController::class, 'index'])->name('mypage.index');
 

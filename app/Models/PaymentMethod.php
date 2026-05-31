@@ -17,4 +17,9 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(Purchase::class);
     }
+
+    public function isCard(): bool
+    {
+        return str_contains($this->name, 'カード');
+    }
 }

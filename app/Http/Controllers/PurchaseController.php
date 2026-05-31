@@ -7,8 +7,10 @@ use App\Models\Item;
 use App\Models\PaymentMethod;
 use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Stripe\StripeClient;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PurchaseController extends Controller
@@ -34,28 +36,115 @@ class PurchaseController extends Controller
 
         $validated = $request->validated();
         $shippingAddress = $this->resolveShippingAddress($item);
+        $paymentMethod = PaymentMethod::findOrFail($validated['payment_method_id']);
 
-        DB::transaction(function () use ($item, $validated, $shippingAddress) {
-            Purchase::create([
-                'user_id' => auth()->id(),
-                'item_id' => $item->id,
-                'payment_method_id' => $validated['payment_method_id'],
-                'postal_code' => $shippingAddress['postal_code'] ?? $validated['postal_code'],
-                'address' => $shippingAddress['address'] ?? $validated['address'],
-                'building' => $shippingAddress['building'] ?? $validated['building'] ?? null,
-            ]);
+        $purchaseData = [
+            'payment_method_id' => $paymentMethod->id,
+            'postal_code' => $shippingAddress['postal_code'] ?? $validated['postal_code'],
+            'address' => $shippingAddress['address'] ?? $validated['address'],
+            'building' => $shippingAddress['building'] ?? $validated['building'] ?? null,
+        ];
+
+        if ($paymentMethod->isCard() && $this->stripeEnabled()) {
+            return $this->redirectToStripeCheckout($item, $purchaseData);
+        }
+
+        $this->completePurchase($item, $purchaseData);
+
+        return redirect()->route('items.index');
+    }
+
+    public function success(Request $request, Item $item): RedirectResponse
+    {
+        $sessionId = $request->query('session_id');
+        $pending = session($this->checkoutSessionKey($item));
+
+        if (! $sessionId || ! is_array($pending) || $pending['session_id'] !== $sessionId) {
+            return redirect()->route('purchases.create', $item);
+        }
+
+        if (! $this->ensurePurchasableSilently($item)) {
+            session()->forget($this->checkoutSessionKey($item));
+
+            return redirect()->route('items.index');
+        }
+
+        $checkoutSession = $this->stripe()->checkout->sessions->retrieve($sessionId);
+
+        if ($checkoutSession->payment_status !== 'paid') {
+            return redirect()->route('purchases.create', $item);
+        }
+
+        $this->completePurchase($item, $pending['purchase']);
+
+        session()->forget($this->checkoutSessionKey($item));
+
+        return redirect()->route('items.index');
+    }
+
+    public function cancel(Item $item): RedirectResponse
+    {
+        session()->forget($this->checkoutSessionKey($item));
+
+        return redirect()->route('purchases.create', $item);
+    }
+
+    private function completePurchase(Item $item, array $purchaseData): void
+    {
+        DB::transaction(function () use ($item, $purchaseData) {
+            Purchase::create(array_merge(['user_id' => auth()->id(), 'item_id' => $item->id], $purchaseData));
 
             $item->update(['is_sold' => true]);
         });
 
         session()->forget($this->sessionKey($item));
+    }
 
-        return redirect()->route('items.index');
+    private function redirectToStripeCheckout(Item $item, array $purchaseData): RedirectResponse
+    {
+        $checkoutSession = $this->stripe()->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'jpy',
+                    'unit_amount' => $item->price,
+                    'product_data' => [
+                        'name' => $item->name,
+                    ],
+                ],
+            ]],
+            'success_url' => route('purchases.success', $item).'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('purchases.cancel', $item),
+        ]);
+
+        session([$this->checkoutSessionKey($item) => [
+            'session_id' => $checkoutSession->id,
+            'purchase' => $purchaseData,
+        ]]);
+
+        return redirect()->away($checkoutSession->url);
+    }
+
+    private function stripeEnabled(): bool
+    {
+        return ! empty(config('services.stripe.secret'));
+    }
+
+    private function stripe(): StripeClient
+    {
+        return new StripeClient(config('services.stripe.secret'));
     }
 
     private function sessionKey(Item $item): string
     {
         return 'purchase_address.'.$item->id;
+    }
+
+    private function checkoutSessionKey(Item $item): string
+    {
+        return 'purchase_checkout.'.$item->id;
     }
 
     /**
@@ -90,5 +179,12 @@ class PurchaseController extends Controller
         if ($item->is_sold || $item->purchase()->exists()) {
             throw new HttpException(403, 'この商品は購入できません。');
         }
+    }
+
+    private function ensurePurchasableSilently(Item $item): bool
+    {
+        return $item->user_id !== auth()->id()
+            && ! $item->is_sold
+            && ! $item->purchase()->exists();
     }
 }

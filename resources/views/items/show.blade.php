@@ -145,27 +145,21 @@
             </h2>
 
             <div class="mt-6">
-                @auth
-                    <form method="POST" action="{{ route('items.comment', $item) }}" class="space-y-4">
-                        @csrf
-                        <div>
-                            <x-input-label for="comment" value="コメントを入力" />
-                            <textarea
-                                id="comment"
-                                name="comment"
-                                rows="4"
-                                class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                placeholder="コメントを入力してください"
-                            >{{ old('comment') }}</textarea>
-                            <x-input-error :messages="$errors->get('comment')" class="mt-2" />
-                        </div>
-                        <x-primary-button>送信する</x-primary-button>
-                    </form>
-                @else
-                    <p class="text-sm text-gray-600">
-                        コメントするには<a href="{{ route('login') }}" class="underline text-indigo-600 hover:text-indigo-800">ログイン</a>してください。
-                    </p>
-                @endauth
+                <form method="POST" action="{{ route('items.comment', $item) }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <x-input-label for="comment" value="商品へのコメント" />
+                        <textarea
+                            id="comment"
+                            name="comment"
+                            rows="4"
+                            class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                            placeholder="コメントを入力してください"
+                        >{{ old('comment') }}</textarea>
+                        <x-input-error :messages="$errors->get('comment')" class="mt-2" />
+                    </div>
+                    <x-primary-button class="w-full justify-center">コメントを送信する</x-primary-button>
+                </form>
             </div>
 
             @if ($item->comments->isEmpty())
@@ -174,10 +168,23 @@
                 <ul class="mt-4 divide-y divide-gray-100">
                     @foreach ($item->comments as $comment)
                         <li class="py-4">
-                            <p class="text-sm font-medium text-gray-900">
-                                {{ $comment->user->name }}
-                            </p>
-                            <p class="mt-1 text-sm text-gray-700">
+                            <div class="flex items-center gap-3">
+                                @if ($comment->user->profile_image)
+                                    <img
+                                        src="{{ asset('storage/'.$comment->user->profile_image) }}"
+                                        alt="{{ $comment->user->name }}"
+                                        class="h-9 w-9 rounded-full object-cover border border-gray-200"
+                                    >
+                                @else
+                                    <div class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 border border-gray-200">
+                                        {{ mb_substr($comment->user->name, 0, 1) }}
+                                    </div>
+                                @endif
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $comment->user->name }}
+                                </p>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-700">
                                 {{ $comment->comment }}
                             </p>
                         </li>

@@ -84,18 +84,22 @@
 | 15 | 出品商品情報登録 | 実装済 | `ExhibitionTest` |
 
 ## 注意点
-- DB設計は `docs/table_design.xlsx` と `docs/er_diagram.jpg` を最優先する
-- 設計書にないテーブル・カラムは追加しない
+- DB設計の最新・正式版は `docs/table_design.md`（実装準拠）を参照する
+  - 旧 `docs/table_design.xlsx` / `docs/er_diagram.jpg` は 9 テーブル・`purchases.payment_method`（文字列）だが、実装では **10 テーブル**・`purchases.payment_method_id`（`payment_methods` への外部キー）で正規化している
+  - xlsx / jpg も `docs/table_design.md` に合わせて更新する
 - items に category_id を直接持たせない
 - items に condition 文字列カラムを持たせない
 - likes テーブルを使い、favorites は使わない
 - comments の本文カラム名は comment にする
 - Docker と README は最終的に必要
 
+## 実装済みの応用要件
+
+- メール認証（Fortify + `MustVerifyEmail`、MailHog で確認）
+- Stripe（カード支払い選択時に Checkout へ遷移）
+
 ## 未実装（スコープ外）
 
 - 商品編集・削除
-- Stripe 決済接続
-- メール認証
 - 他ユーザーのプロフィール表示
 - パスワードリセット / Breeze 標準プロフィール画面

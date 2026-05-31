@@ -54,6 +54,30 @@ services:
     networks:
       - furima
 
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: furima-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: furima
+      PMA_PASSWORD: furima
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - furima
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: furima-mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - furima
+
 networks:
   furima:
     driver: bridge
