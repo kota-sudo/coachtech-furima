@@ -28,14 +28,16 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-between mt-6">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('login') }}">
-                ログインはこちら
-            </a>
-
-            <x-primary-button>
+        <div class="mt-6">
+            <x-primary-button class="w-full justify-center">
                 登録する
             </x-primary-button>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a class="text-sm text-red-500 hover:text-red-600 underline" href="{{ route('login') }}">
+                ログインはこちら
+            </a>
         </div>
     </form>
 </x-guest-layout>

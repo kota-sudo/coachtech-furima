@@ -74,4 +74,16 @@ class EmailVerificationTest extends TestCase
             ->get(route('items.sell'))
             ->assertRedirect(route('verification.notice'));
     }
+
+    public function test_unverified_user_is_redirected_to_notice_after_login(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertRedirect(route('verification.notice'));
+
+        $this->assertAuthenticated();
+    }
 }

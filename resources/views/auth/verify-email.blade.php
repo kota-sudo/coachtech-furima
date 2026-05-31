@@ -19,14 +19,14 @@
             rel="noopener"
             class="block w-full rounded-md bg-red-500 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-red-600"
         >
-            認証メールを確認する
+            認証はこちらから
         </a>
 
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
             <button
                 type="submit"
-                class="w-full text-sm text-indigo-600 underline hover:text-indigo-800"
+                class="w-full text-sm text-red-500 underline hover:text-red-600"
             >
                 認証メールを再送する
             </button>

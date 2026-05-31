@@ -20,7 +20,7 @@
                     <h1 class="text-2xl font-bold text-gray-900">{{ $user->name }}</h1>
                     <a
                         href="{{ route('mypage.profile') }}"
-                        class="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-800 underline"
+                        class="mt-3 inline-flex items-center rounded-md border border-red-500 px-4 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50"
                     >
                         プロフィールを編集
                     </a>
@@ -32,13 +32,13 @@
             <nav class="flex gap-6">
                 <a
                     href="{{ route('mypage.index', ['page' => 'sell']) }}"
-                    class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'sell' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                    class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'sell' ? 'border-red-500 text-red-500' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                 >
                     出品した商品
                 </a>
                 <a
                     href="{{ route('mypage.index', ['page' => 'buy']) }}"
-                    class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'buy' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                    class="pb-3 text-sm font-medium border-b-2 {{ $tab === 'buy' ? 'border-red-500 text-red-500' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                 >
                     購入した商品
                 </a>

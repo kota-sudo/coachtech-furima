@@ -52,7 +52,7 @@
                         <select
                             id="payment_method_id"
                             name="payment_method_id"
-                            class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                            class="block mt-1 w-full border-gray-300 focus:border-red-400 focus:ring-red-400 rounded-md shadow-sm"
                         >
                             @foreach ($paymentMethods as $paymentMethod)
                                 <option
@@ -72,7 +72,7 @@
                         <h2 class="text-lg font-semibold text-gray-900">配送先</h2>
                         <a
                             href="{{ route('purchases.address', $item) }}"
-                            class="text-sm text-indigo-600 hover:text-indigo-800 underline shrink-0"
+                            class="text-sm text-red-500 hover:text-red-600 underline shrink-0"
                         >
                             送付先を変更する
                         </a>
@@ -119,7 +119,7 @@
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-gray-500">
-                        ※ 「カード支払い」を選択した場合は Stripe の決済画面に遷移します（テスト用カード番号で動作確認できます）。
+                        ※ 「購入する」を押すと Stripe の決済画面に遷移します（カードはテストカード番号、コンビニはコンビニ決済で動作確認できます）。
                     </p>
                 </div>
 

@@ -45,8 +45,8 @@ class PurchaseController extends Controller
             'building' => $shippingAddress['building'] ?? $validated['building'] ?? null,
         ];
 
-        if ($paymentMethod->isCard() && $this->stripeEnabled()) {
-            return $this->redirectToStripeCheckout($item, $purchaseData);
+        if ($this->stripeEnabled()) {
+            return $this->redirectToStripeCheckout($item, $paymentMethod, $purchaseData);
         }
 
         $this->completePurchase($item, $purchaseData);
@@ -100,11 +100,12 @@ class PurchaseController extends Controller
         session()->forget($this->sessionKey($item));
     }
 
-    private function redirectToStripeCheckout(Item $item, array $purchaseData): RedirectResponse
+    private function redirectToStripeCheckout(Item $item, PaymentMethod $paymentMethod, array $purchaseData): RedirectResponse
     {
         $checkoutSession = $this->stripe()->checkout->sessions->create([
             'mode' => 'payment',
-            'payment_method_types' => ['card'],
+            'payment_method_types' => $paymentMethod->isCard() ? ['card'] : ['konbini'],
+            'customer_email' => auth()->user()->email,
             'line_items' => [[
                 'quantity' => 1,
                 'price_data' => [

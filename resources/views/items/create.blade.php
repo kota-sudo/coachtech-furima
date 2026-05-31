@@ -12,30 +12,39 @@
 
             <div>
                 <x-input-label for="image" value="商品画像" />
+                <label for="image" class="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-8 text-center transition hover:border-red-400">
+                    <span class="inline-flex items-center rounded-md border border-red-500 px-4 py-1.5 text-sm font-medium text-red-500">
+                        画像を選択する
+                    </span>
+                    <span class="mt-2 text-xs text-gray-500">JPEG / PNG</span>
+                </label>
                 <input
                     id="image"
                     name="image"
                     type="file"
                     accept="image/jpeg,image/png"
-                    class="block mt-1 w-full text-sm text-gray-600 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="sr-only"
+                    onchange="document.getElementById('image-filename').textContent = this.files[0] ? this.files[0].name : ''"
                 >
-                <p class="mt-1 text-xs text-gray-500">JPEG / PNG</p>
+                <p id="image-filename" class="mt-2 text-sm text-gray-700"></p>
                 <x-input-error :messages="$errors->get('image')" class="mt-2" />
             </div>
 
             <div>
                 <p class="text-sm font-medium text-gray-700">商品のカテゴリー</p>
-                <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($categories as $category)
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <label class="cursor-pointer">
                             <input
                                 type="checkbox"
                                 name="category_ids[]"
                                 value="{{ $category->id }}"
-                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                class="peer sr-only"
                                 @checked(in_array($category->id, old('category_ids', []), true))
                             >
-                            <span>{{ $category->name }}</span>
+                            <span class="inline-block rounded-full border border-gray-300 px-4 py-1.5 text-sm text-gray-700 transition peer-checked:border-red-500 peer-checked:bg-red-500 peer-checked:text-white hover:border-red-400">
+                                {{ $category->name }}
+                            </span>
                         </label>
                     @endforeach
                 </div>
@@ -47,7 +56,7 @@
                 <select
                     id="condition_id"
                     name="condition_id"
-                    class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                    class="block mt-1 w-full border-gray-300 focus:border-red-400 focus:ring-red-400 rounded-md shadow-sm"
                 >
                     <option value="">選択してください</option>
                     @foreach ($conditions as $condition)
@@ -92,7 +101,7 @@
                     name="description"
                     rows="5"
                     maxlength="255"
-                    class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                    class="block mt-1 w-full border-gray-300 focus:border-red-400 focus:ring-red-400 rounded-md shadow-sm"
                     required
                 >{{ old('description') }}</textarea>
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
@@ -108,6 +117,7 @@
                         type="number"
                         min="0"
                         class="block w-full"
+                        placeholder="例: 5000"
                         :value="old('price')"
                         required
                     />

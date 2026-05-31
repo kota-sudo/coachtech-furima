@@ -153,7 +153,7 @@
                             id="comment"
                             name="comment"
                             rows="4"
-                            class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                            class="block mt-1 w-full border-gray-300 focus:border-red-400 focus:ring-red-400 rounded-md shadow-sm"
                             placeholder="コメントを入力してください"
                         >{{ old('comment') }}</textarea>
                         <x-input-error :messages="$errors->get('comment')" class="mt-2" />
