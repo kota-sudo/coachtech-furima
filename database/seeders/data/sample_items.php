@@ -14,6 +14,14 @@ return [
         'address' => '東京都港区芝公園',
         'building' => 'ACビル101',
     ],
+    'buyer' => [
+        'name' => '購入者ユーザー',
+        'email' => 'buyer@example.com',
+        'password' => 'password',
+        'postal_code' => '150-0001',
+        'address' => '東京都渋谷区神宮前',
+        'building' => 'BDビル202',
+    ],
     'items' => [
         [
             'name' => '腕時計',

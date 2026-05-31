@@ -132,12 +132,14 @@ docker compose exec php php artisan migrate:fresh --seed
 | phpMyAdmin | http://localhost:8081 | DB の確認（サーバー `mysql` / ユーザー `furima` / パスワード `furima`） |
 | MailHog | http://localhost:8025 | 送信メール（会員登録の認証メール）の確認 |
 
-シード後の出品者アカウント例（`database/seeders/data/sample_items.php`）:
+シード後のテストアカウント（`database/seeders/data/sample_items.php`）:
 
-| 項目 | 値 |
-| --- | --- |
-| メール | `seller@example.com` |
-| パスワード | `password` |
+| 役割 | メール | パスワード | 用途 |
+| --- | --- | --- | --- |
+| 購入者ユーザー | `buyer@example.com` | `password` | 商品一覧の閲覧・購入・いいね・コメントの確認（商品を出品していないため全商品が表示されます） |
+| 出品者ユーザー | `seller@example.com` | `password` | 出品済み10商品の所有者（ログインすると「自分の出品は非表示」のため一覧には表示されません） |
+
+> 動作確認は `buyer@example.com` でのログインを推奨します（出品者でログインすると、自分の商品は一覧に出ない仕様のため一覧が空になります）。
 
 ## Docker 構成
 

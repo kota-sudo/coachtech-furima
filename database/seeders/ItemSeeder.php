@@ -17,19 +17,11 @@ class ItemSeeder extends Seeder
 {
     public function run(): void
     {
-        /** @var array{seller: array<string, string>, items: list<array<string, mixed>>} $data */
+        /** @var array{seller: array<string, string>, buyer: array<string, string>, items: list<array<string, mixed>>} $data */
         $data = require database_path('seeders/data/sample_items.php');
 
-        $sellerData = $data['seller'];
-        $seller = User::create([
-            'name' => $sellerData['name'],
-            'email' => $sellerData['email'],
-            'password' => Hash::make($sellerData['password']),
-            'postal_code' => $sellerData['postal_code'],
-            'address' => $sellerData['address'],
-            'building' => $sellerData['building'],
-            'email_verified_at' => now(),
-        ]);
+        $seller = $this->createUser($data['seller']);
+        $this->createUser($data['buyer']);
 
         $conditions = Condition::pluck('id', 'name');
         $categories = Category::pluck('id', 'name');
@@ -64,6 +56,22 @@ class ItemSeeder extends Seeder
                 'category_id' => $categories[$itemData['category']],
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, string>  $userData
+     */
+    private function createUser(array $userData): User
+    {
+        return User::create([
+            'name' => $userData['name'],
+            'email' => $userData['email'],
+            'password' => Hash::make($userData['password']),
+            'postal_code' => $userData['postal_code'],
+            'address' => $userData['address'],
+            'building' => $userData['building'],
+            'email_verified_at' => now(),
+        ]);
     }
 
     private function resolveImagePath(string $imageUrl, string $filename): string
